@@ -1,0 +1,38 @@
+.logo {
+  display: flex;
+  margin: 20px;
+}
+
+.site-layout-background {
+  background: white
+}
+
+.content {
+  margin: 24px 16px;
+  padding: 24px;
+  background: #fff;
+  min-height: 280px;
+}
+
+.logout-button {
+  margin-right: 16px;
+}
+
+.ant-layout-sider-trigger {
+  background: #991a1e !important
+  /* Additional styles if needed */
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('../fonts/Poppins-Regular.ttf') format('woff2'),
+       url('../fonts/Poppins-Bold.ttf') format('woff');
+  /* Include other font weights and styles if needed */
+}
+
+.ant {
+  p {
+    font-family: 'Poppins';
+    font-size: 'small';
+  }
+}
