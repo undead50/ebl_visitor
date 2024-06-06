@@ -13,6 +13,7 @@ import {
 } from 'redux-persist';
 
 import { enc, AES } from 'crypto-js';
+import { visitorReducer } from './slices/visitorSlice';
 
 const secretKey = '081fbadce74f99af29c8280fce633fb9';
 
@@ -27,10 +28,13 @@ const encryptor = createTransform(
   (outboundState, key) => decrypt(outboundState) // Decrypt the outbound state
 );
 
-const rootReducer = combineReducers({});
+const rootReducer = combineReducers({
+  visitor: visitorReducer,
+
+});
 
 const persistConfig = {
-  key: 'root_riskassessment',
+  key: 'visitor_management_system',
   storage,
   transforms: [encryptor], // Use the encryptTransform directly
   whitelist: [

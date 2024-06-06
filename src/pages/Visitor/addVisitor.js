@@ -1,17 +1,39 @@
 import React,{ useState, useRef }  from 'react';
-import { Form, Input, Upload,Card ,Button, Modal,Image,message} from 'antd';
+import { Form, Input, Upload,Card ,Button, Modal,Image,message,DatePicker, TimePicker} from 'antd';
 import { CameraOutlined,UploadOutlined } from '@ant-design/icons';
 import Webcam from 'react-webcam';
+import dayjs from 'dayjs';
+import { useSelector, useDispatch } from 'react-redux';
+
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { createVisitorAsync } from '../../store/slices/visitorSlice';
+dayjs.extend(customParseFormat);
 
 const FormItem = Form.Item;
 
 const VisitorAddForm = () => {
+
+  const dispatch = useDispatch();
+
   const [visible, setVisible] = useState(false);
   const [imageData, setImageData] = useState(null);
   const webcamRef = useRef(null);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
 
+  const range = (start, end) => {
+    const result = [];
+    for (let i = start; i < end; i++) {
+      result.push(i);
+    }
+    return result;
+  };
+
+
+  const disabledDate = (current) => {
+    // Can not select days before today and today
+    return current && current < dayjs().endOf('day');
+  };
 
   const props = {
     action: 'https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188',
@@ -36,9 +58,11 @@ const VisitorAddForm = () => {
   };
 
 
-  const onFinish = (values) => {
+  const onFinish = async(values) => {
     alert('finish')
     console.log(imageData)
+    const formData = new FormData();
+    
     if (imageData != null) {
       const Record = {
         ...values,
@@ -46,7 +70,32 @@ const VisitorAddForm = () => {
       };
       form.setFieldsValue(Record);
     }
-    console.log('Received values:', values);
+    // Append form values to the FormData object
+    for (const key in values) {
+      if (values.hasOwnProperty(key)) {
+        // Handle files separately
+        if (key === 'files' && values[key] != null) {
+          await Promise.all(
+            values[key].map(async (file, index) => {
+              // Check if it's an Ant Design Upload file object
+
+                alert('file called')
+                // console.error('Error fetching file:', error);
+                formData.append(`files`, file.originFileObj);
+              
+
+              // formData.append(`files`, file.originFileObj);
+            })
+          );
+        } else {
+          alert(key)
+          formData.append(key, values[key]);
+        }
+      }
+    }
+
+    dispatch(createVisitorAsync(formData));
+    console.log('Received values:', formData);
   };
 
   const stopVideoStream = () => {
@@ -72,6 +121,12 @@ const VisitorAddForm = () => {
     form.setFieldsValue({ photo: imageSrc }); // Set the image data in the form field
 
   };
+
+  const disabledDateTime = () => ({
+    disabledHours: () => range(0, 24).splice(4, 20),
+    disabledMinutes: () => range(30, 60),
+    disabledSeconds: () => [55, 56],
+  });
 
   const closeModal = () => {
     setVisible(false);
@@ -101,7 +156,7 @@ const VisitorAddForm = () => {
       onFinish={onFinish}
       style={{ maxWidth: '500px', margin: 'auto' }}
     >
-      <Card>
+      <Card style={{width:'180px'}}>
         <Image
         width={150}  // Adjust width as needed
         src={imageData === null? process.env.PUBLIC_URL + '/images/pp.png' : imageData}
@@ -129,11 +184,25 @@ const VisitorAddForm = () => {
 
       <FormItem
         label="Purpose of Visit"
-        name="purpose"
+        name="purpose_of_visit"
         rules={[{ required: true, message: 'Please input the purpose of your visit!' }]}
       >
         <Input.TextArea />
       </FormItem>
+
+      <FormItem
+          label="Check-in Time"
+          name="check_in_time"
+          
+          rules={[{ required: true, message: 'Please select the check-in time!' }]}
+        >
+          <DatePicker format="YYYY-MM-DD HH:mm:ss"
+          disabledDate={disabledDate}
+          disabledTime={disabledDateTime}
+          showTime={{
+            defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
+          }}/>
+        </FormItem>
 
         <Form.Item
               name="files"
