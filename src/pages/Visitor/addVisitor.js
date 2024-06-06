@@ -1,6 +1,17 @@
-import React,{ useState, useRef }  from 'react';
-import { Form, Input, Upload,Card ,Button, Modal,Image,message,DatePicker, TimePicker} from 'antd';
-import { CameraOutlined,UploadOutlined } from '@ant-design/icons';
+import React, { useState, useRef } from 'react';
+import {
+  Form,
+  Input,
+  Upload,
+  Card,
+  Button,
+  Modal,
+  Image,
+  message,
+  DatePicker,
+  TimePicker,
+} from 'antd';
+import { CameraOutlined, UploadOutlined } from '@ant-design/icons';
 import Webcam from 'react-webcam';
 import dayjs from 'dayjs';
 import { useSelector, useDispatch } from 'react-redux';
@@ -12,7 +23,6 @@ dayjs.extend(customParseFormat);
 const FormItem = Form.Item;
 
 const VisitorAddForm = () => {
-
   const dispatch = useDispatch();
 
   const [visible, setVisible] = useState(false);
@@ -29,7 +39,6 @@ const VisitorAddForm = () => {
     return result;
   };
 
-
   const disabledDate = (current) => {
     // Can not select days before today and today
     return current && current < dayjs().endOf('day');
@@ -44,25 +53,23 @@ const VisitorAddForm = () => {
     },
     beforeUpload: (file) => {
       return new Promise((resolve, reject) => {
-        
         // check the file size - you can specify the file size you'd like here:
         const isLt5M = file.size / 1024 / 1024 <= 9;
         if (!isLt5M) {
-          message.error('File must be smaller than 9MB!')
-          return false
-        };
+          message.error('File must be smaller than 9MB!');
+          return false;
+        }
         reject(false);
-      })
+      });
     },
     fileList,
   };
 
-
-  const onFinish = async(values) => {
-    alert('finish')
-    console.log(imageData)
+  const onFinish = async (values) => {
+    alert('finish');
+    console.log(imageData);
     const formData = new FormData();
-    
+
     if (imageData != null) {
       const Record = {
         ...values,
@@ -79,16 +86,15 @@ const VisitorAddForm = () => {
             values[key].map(async (file, index) => {
               // Check if it's an Ant Design Upload file object
 
-                alert('file called')
-                // console.error('Error fetching file:', error);
-                formData.append(`files`, file.originFileObj);
-              
+              alert('file called');
+              // console.error('Error fetching file:', error);
+              formData.append(`files`, file.originFileObj);
 
               // formData.append(`files`, file.originFileObj);
             })
           );
         } else {
-          alert(key)
+          alert(key);
           formData.append(key, values[key]);
         }
       }
@@ -101,16 +107,19 @@ const VisitorAddForm = () => {
   const stopVideoStream = () => {
     if (webcamRef.current && webcamRef.current.stream) {
       const tracks = webcamRef.current.stream.getTracks();
-      tracks.forEach(track => track.stop());
+      tracks.forEach((track) => track.stop());
     }
   };
 
   const openCamera = () => {
+    setImageData(null);
     setVisible(true);
     if (webcamRef.current && !webcamRef.current.stream) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then(mediaStream => {
-        webcamRef.current.srcObject = mediaStream;
-      });
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((mediaStream) => {
+          webcamRef.current.srcObject = mediaStream;
+        });
     }
   };
 
@@ -119,7 +128,6 @@ const VisitorAddForm = () => {
     setImageData(imageSrc);
     setVisible(false);
     form.setFieldsValue({ photo: imageSrc }); // Set the image data in the form field
-
   };
 
   const disabledDateTime = () => ({
@@ -130,124 +138,183 @@ const VisitorAddForm = () => {
 
   const closeModal = () => {
     setVisible(false);
-    stopVideoStream();
+    stopVideoStream(); // Stop the video stream when the modal is closed
+    if (webcamRef.current) {
+      webcamRef.current.srcObject = null; // Reset the webcam reference
+    }
   };
 
   return (
-    <Card style={{display:"flex",alignContent:"flex-start"}}>
-     <Modal
+    <div
+      style={{
+        display: 'flex',
+        alignContent: 'flex-start',
+        background: '#F1F2F5',
+      }}
+    >
+      <Modal
         title="Camera Preview"
         visible={visible}
+        destroyOnClose={true}
         onCancel={closeModal}
         footer={[
-          <Button key="capture" onClick={captureImage}>Capture Image</Button>,
-          <Button key="cancel" onClick={closeModal}>Cancel</Button>,
+          <Button key="capture" onClick={captureImage}>
+            Capture Image
+          </Button>,
+          <Button key="cancel" onClick={closeModal}>
+            Cancel
+          </Button>,
         ]}
       >
-        <Webcam
-          audio={false}
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          style={{ width: '100%' }}
-        />
-      </Modal>
-    <Form
-      form={form}
-      onFinish={onFinish}
-      style={{ maxWidth: '500px', margin: 'auto' }}
-    >
-      <Card style={{width:'180px'}}>
-        <Image
-        width={150}  // Adjust width as needed
-        src={imageData === null? process.env.PUBLIC_URL + '/images/pp.png' : imageData}
-        alt="Passport Photo"
-        />
-      </Card>
-      <br/>  
-      <FormItem
-        label="PP Photo Image"
-        name="photo"
-        rules={[{ required: true, message: 'Please upload your photo!' }]}
-      >
-        
-          <Button icon={<CameraOutlined />} onClick={openCamera}>Take Image</Button>
-      </FormItem>
-
-
-      <FormItem
-        label="Name"
-        name="name"
-        rules={[{ required: true, message: 'Please input your name!' }]}
-      >
-        <Input />
-      </FormItem>
-
-      <FormItem
-        label="Purpose of Visit"
-        name="purpose_of_visit"
-        rules={[{ required: true, message: 'Please input the purpose of your visit!' }]}
-      >
-        <Input.TextArea />
-      </FormItem>
-
-      <FormItem
-          label="Check-in Time"
-          name="check_in_time"
-          
-          rules={[{ required: true, message: 'Please select the check-in time!' }]}
-        >
-          <DatePicker format="YYYY-MM-DD HH:mm:ss"
-          disabledDate={disabledDate}
-          disabledTime={disabledDateTime}
-          showTime={{
-            defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
-          }}/>
-        </FormItem>
-
-        <Form.Item
-              name="files"
-              label="Documents"
-              valuePropName="fileList"
-              getValueFromEvent={(e) => {
-                if (Array.isArray(e)) {
-                  return e;
-                }
-                return e && e.fileList;
+        <div style={{ position: 'relative' }}>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            style={{ width: '100%' }}
+          />
+          {imageData === null && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                border: '2px solid red',
+                width: '250px',
+                height: '250px',
+                pointerEvents: 'none',
               }}
-              rules={[
-                {
-                  required: false,
-                  message: 'Please upload Supporting Documents!',
-                },
-              ]}
+            />
+          )}
+        </div>
+      </Modal>
+      <Card style={{ width: '500px' }}>
+        <Form
+          form={form}
+          onFinish={onFinish}
+          style={{ maxWidth: '500px', margin: 'auto' }}
+        >
+          <Card
+            style={{
+              width: '270px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+            }}
+          >
+            <Image
+              width={250} // Adjust width as needed
+              style={{
+                width: '250px',
+                height: '250px',
+                objectFit: 'cover',
+                borderRadius: '50%',
+              }}
+              src={
+                imageData === null
+                  ? process.env.PUBLIC_URL + '/images/pp.png'
+                  : imageData
+              }
+              alt="Passport Photo"
+            />
+          </Card>
+          <br />
+          <FormItem
+            label="PP Photo Image"
+            name="photo"
+            rules={[{ required: true, message: 'Please upload your photo!' }]}
+          >
+            <Button icon={<CameraOutlined />} onClick={openCamera}>
+              Take Image
+            </Button>
+          </FormItem>
+
+          <FormItem
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: 'Please input your name!' }]}
+          >
+            <Input />
+          </FormItem>
+
+          <FormItem
+            label="Purpose of Visit"
+            name="purpose_of_visit"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the purpose of your visit!',
+              },
+            ]}
+          >
+            <Input.TextArea />
+          </FormItem>
+
+          <FormItem
+            label="Check-in Time"
+            name="check_in_time"
+            rules={[
+              { required: true, message: 'Please select the check-in time!' },
+            ]}
+          >
+            <DatePicker
+              format="YYYY-MM-DD HH:mm:ss"
+              disabledDate={disabledDate}
+              disabledTime={disabledDateTime}
+              showTime={{
+                defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
+              }}
+            />
+          </FormItem>
+
+          <Form.Item
+            name="files"
+            label="Documents"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e && e.fileList;
+            }}
+            rules={[
+              {
+                required: false,
+                message: 'Please upload Supporting Documents!',
+              },
+            ]}
+          >
+            <Upload
+              {...props}
+              multiple
+              listType="picture-card"
+              accept=".pdf,.jpg,.jpeg,.xlsx,.txt,.xls"
             >
-              <Upload
-                {...props}
-                multiple
-                listType="picture-card"
-                accept=".pdf,.jpg,.jpeg,.xlsx,.txt,.xls"
-              >
-                <Button icon={<UploadOutlined />}>Click to Upload</Button>
-              </Upload>
-            </Form.Item>
+              <Button icon={<UploadOutlined />}>Click to Upload</Button>
+            </Upload>
+          </Form.Item>
 
-      
+          <FormItem
+            label="Name of Visiting Department"
+            name="department"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the name of the visiting department!',
+              },
+            ]}
+          >
+            <Input />
+          </FormItem>
 
-      <FormItem
-        label="Name of Visiting Department"
-        name="department"
-        rules={[{ required: true, message: 'Please input the name of the visiting department!' }]}
-      >
-        <Input />
-      </FormItem>
-
-      <FormItem>
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
-      </FormItem>
-    </Form>
-    </Card>
+          <FormItem>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </FormItem>
+        </Form>
+      </Card>
+    </div>
   );
 };
 
