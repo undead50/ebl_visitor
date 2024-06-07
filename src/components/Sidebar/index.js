@@ -24,14 +24,16 @@ function SideBard() {
         <Link to={'/'}>Dashboard</Link>
       </Menu.Item>
       <SubMenu key="sub1" icon={<FileDoneOutlined />} title="Visitor">
-        {/* <Menu.Item key="6">
-          <Link to={'/initiate-swift'}>Initiate Swift</Link>
-        </Menu.Item> */}
-        {/* <Menu.Item key="7">
-          <Link to={'/camera'}>camera</Link>
-        </Menu.Item> */}
         <Menu.Item key="8">
           <Link to={'/visitor-add'}>visitor-add</Link>
+        </Menu.Item>
+        <Menu.Item key="7">
+          <Link to={'/visitor-index'}>visitors-list</Link>
+        </Menu.Item>
+      </SubMenu>
+      <SubMenu key="sub2" icon={<FileDoneOutlined />} title="Settings">
+        <Menu.Item key="9">
+          <Link to={'/department'}>Department</Link>
         </Menu.Item>
       </SubMenu>
     </Menu>

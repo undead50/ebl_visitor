@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef} from 'react';
 import {
   Form,
   Input,
@@ -10,26 +10,80 @@ import {
   message,
   DatePicker,
   TimePicker,
+  Select
 } from 'antd';
 import { CameraOutlined, UploadOutlined } from '@ant-design/icons';
 import Webcam from 'react-webcam';
 import dayjs from 'dayjs';
 import { useSelector, useDispatch } from 'react-redux';
-
+import { useNavigate, useParams } from 'react-router-dom';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { createVisitorAsync } from '../../store/slices/visitorSlice';
+import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
+import { useEffect } from 'react';
 dayjs.extend(customParseFormat);
 
 const FormItem = Form.Item;
-
+const { Option } = Select;
 const VisitorAddForm = () => {
-  const dispatch = useDispatch();
+  const changeId = useParams();
+  const [form] = Form.useForm();
+  const [editMode, setEditMode] = useState(false); 
 
+  const { visitors, visitor_loading, visitor_error } = useSelector(
+    (state) => state.visitor
+  );
+
+  useEffect(()=>{
+    if (changeId.changeId) {
+      setEditMode(true);
+      // alert(changeId.changeId)
+  
+      const changeEdit = visitors.filter(
+        (change) => change.id == changeId.changeId
+      );
+      const selectedRecord = changeEdit[0];
+      // console.log(selectedRecord)
+      // alert(selectedRecord.check_in_time);
+      // const antdDate = dayjs(selectedRecord.check_in_time).format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
+      // // Create a new object with modified check_in_time
+      // const updatedRecord = {
+      //   ...selectedRecord,
+      //   check_in_time: antdDate,
+      // };
+  
+      // alert(antdDate);
+      // setEditMode(true);
+  
+      form.setFieldsValue(selectedRecord);
+  
+  
+    }
+  },[changeId,form])
+
+  
+
+  const dispatch = useDispatch();
+  const [options, setOptions] = useState([]);
   const [visible, setVisible] = useState(false);
   const [imageData, setImageData] = useState(null);
   const webcamRef = useRef(null);
-  const [form] = Form.useForm();
+  
   const [fileList, setFileList] = useState([]);
+
+  const { departments } = useSelector((state) => state.department);
+
+  useEffect(() => {
+    dispatch(fetchDepartmentsAsync())
+    console.log(departments);
+    const optionDepartment = departments.map((key) => {
+      return {
+        value: key.id,
+        label: key.name,
+      };
+    });
+    setOptions(optionDepartment);
+  }, []);
 
   const range = (start, end) => {
     const result = [];
@@ -69,6 +123,7 @@ const VisitorAddForm = () => {
     alert('finish');
     console.log(imageData);
     const formData = new FormData();
+    alert(values.check_in_time);
 
     if (imageData != null) {
       const Record = {
@@ -225,7 +280,7 @@ const VisitorAddForm = () => {
             rules={[{ required: true, message: 'Please upload your photo!' }]}
           >
             <Button icon={<CameraOutlined />} onClick={openCamera}>
-              Take Image
+              Take PP Photo
             </Button>
           </FormItem>
 
@@ -235,6 +290,14 @@ const VisitorAddForm = () => {
             rules={[{ required: true, message: 'Please input your name!' }]}
           >
             <Input />
+          </FormItem>
+
+          <FormItem
+            label="Address"
+            name="address"
+            rules={[{ required: true, message: 'Please input your address!' }]}
+          >
+            <Input.TextArea />
           </FormItem>
 
           <FormItem
@@ -249,23 +312,24 @@ const VisitorAddForm = () => {
           >
             <Input.TextArea />
           </FormItem>
-
-          <FormItem
-            label="Check-in Time"
-            name="check_in_time"
-            rules={[
-              { required: true, message: 'Please select the check-in time!' },
-            ]}
-          >
-            <DatePicker
-              format="YYYY-MM-DD HH:mm:ss"
-              disabledDate={disabledDate}
-              disabledTime={disabledDateTime}
-              showTime={{
+          {!editMode && (
+    <FormItem
+        label="Check-in Time"
+        name="check_in_time"
+        rules={[
+            { required: true, message: 'Please select the check-in time!' },
+        ]}
+    >
+        <DatePicker
+            format="ddd, DD MMM YYYY HH:mm:ss [GMT]"
+            showTime={{
                 defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
-              }}
-            />
-          </FormItem>
+            }}
+            disabledDate={disabledDate}
+            disabledTime={disabledDateTime}
+        />
+    </FormItem>
+)}
 
           <Form.Item
             name="files"
@@ -301,6 +365,44 @@ const VisitorAddForm = () => {
               {
                 required: true,
                 message: 'Please input the name of the visiting department!',
+              },
+            ]}
+          >
+            <Select placeholder="Select Department">
+              {options.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </FormItem>
+          
+          <FormItem
+            label="Host/Contact Person"
+            name="host_contact_person"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the host_contact_person!',
+              },
+            ]}
+          >
+            <Input />
+          </FormItem>
+
+
+
+          <FormItem
+            label="Mobile Number"
+            name="mobile_no"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the mobile_no!',
+              },
+              {
+                pattern: /^[0-9]+$/,
+                message: 'Please enter only numbers for the mobile number!',
               },
             ]}
           >

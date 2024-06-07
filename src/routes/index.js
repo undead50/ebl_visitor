@@ -6,6 +6,8 @@ import Login from '../pages/Auth';
 import SwiftMessage from '../pages/Swift';
 import CameraComponent from '../pages/Test/Camera';
 import VisitorAddForm from '../pages/Visitor/addVisitor';
+import DepartmentTable from '../pages/Department';
+import VisitorTable from '../pages/Visitor';
 
 function MyRoutes() {
   return (
@@ -18,6 +20,9 @@ function MyRoutes() {
           <Route path="/initiate-swift" element={<SwiftMessage />} />
           <Route path="/camera" element={<CameraComponent/>}/>
           <Route path="/visitor-add" element={<VisitorAddForm/>}/>
+          <Route path="visitor-add/:changeId" element={<VisitorAddForm />} />
+          <Route path="/department" element={<DepartmentTable/>}/>
+          <Route path="/visitor-index" element={<VisitorTable/>}/>
 
         </Route>
       </Routes>

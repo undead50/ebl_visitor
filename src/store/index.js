@@ -14,6 +14,8 @@ import {
 
 import { enc, AES } from 'crypto-js';
 import { visitorReducer } from './slices/visitorSlice';
+import { departmentReducer } from './slices/departmentSlice';
+import { userReducer } from './slices/userSlice';
 
 const secretKey = '081fbadce74f99af29c8280fce633fb9';
 
@@ -30,6 +32,8 @@ const encryptor = createTransform(
 
 const rootReducer = combineReducers({
   visitor: visitorReducer,
+  department:departmentReducer,
+  user: userReducer,
 
 });
 
@@ -40,15 +44,8 @@ const persistConfig = {
   whitelist: [
     'auth',
     'user',
-    'category',
-    'question',
-    'privilege',
-    'risk',
-    'mark',
-    'report',
-    'mydashboard',
-    'dashboard',
-    'riskdetail',
+    'visitor',
+    'department',
   ],
 };
 
