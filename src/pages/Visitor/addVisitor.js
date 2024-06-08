@@ -1,4 +1,4 @@
-import React, { useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Form,
   Input,
@@ -10,39 +10,82 @@ import {
   message,
   DatePicker,
   TimePicker,
-  Select
+  Select,
 } from 'antd';
 import { CameraOutlined, UploadOutlined } from '@ant-design/icons';
+import axios from 'axios';
 import Webcam from 'react-webcam';
 import dayjs from 'dayjs';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { createVisitorAsync } from '../../store/slices/visitorSlice';
+import {
+  createVisitorAsync,
+  updateVisitorAsync,
+} from '../../store/slices/visitorSlice';
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
 import { useEffect } from 'react';
+import { upload } from '@testing-library/user-event/dist/upload';
 dayjs.extend(customParseFormat);
 
 const FormItem = Form.Item;
 const { Option } = Select;
 const VisitorAddForm = () => {
+  const navigate = useNavigate();
   const changeId = useParams();
   const [form] = Form.useForm();
-  const [editMode, setEditMode] = useState(false); 
+  const [imageData, setImageData] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [fileList, setFileList] = useState([]);
+  const { departments } = useSelector((state) => state.department);
+
+  const uploadUrl = process.env.REACT_APP_FILE_PATH_URL;
 
   const { visitors, visitor_loading, visitor_error } = useSelector(
     (state) => state.visitor
   );
 
-  useEffect(()=>{
+  useEffect(() => {
     if (changeId.changeId) {
       setEditMode(true);
+
       // alert(changeId.changeId)
-  
+      const fetchExistingFiles = async (file) => {
+        try {
+          alert(`${uploadUrl}${file}`);
+          const response = await axios.get(`${uploadUrl}${file}`);
+          setFileList([response.data]);
+        } catch (error) {
+          console.error('Error fetching existing files:', error);
+        }
+      };
+
       const changeEdit = visitors.filter(
         (change) => change.id == changeId.changeId
       );
-      const selectedRecord = changeEdit[0];
+      const selectedRecord_initial = changeEdit[0];
+
+      const departmentNameValue = departments
+        .filter(
+          (department) => department.id == selectedRecord_initial.department
+        )
+        .map((department) => department.name);
+
+      alert(departmentNameValue);
+
+      const selectedRecord = {
+        ...selectedRecord_initial,
+        department: departmentNameValue,
+      };
+
+      // Append custom file objects based on file names
+      if (selectedRecord.uploaded_files != null) {
+        selectedRecord.uploaded_files.map((file) =>
+          fetchExistingFiles(file.filename)
+        );
+      }
+
       // console.log(selectedRecord)
       // alert(selectedRecord.check_in_time);
       // const antdDate = dayjs(selectedRecord.check_in_time).format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
@@ -51,30 +94,45 @@ const VisitorAddForm = () => {
       //   ...selectedRecord,
       //   check_in_time: antdDate,
       // };
-  
+
       // alert(antdDate);
       // setEditMode(true);
-  
-      form.setFieldsValue(selectedRecord);
-  
-  
-    }
-  },[changeId,form])
 
-  
+      setImageData(selectedRecord.photo);
+      if (selectedRecord.uploaded_files != null) {
+        // Set existing files in edit mode
+        const existingFilesArray = selectedRecord.uploaded_files.map(
+          (file, index) => ({
+            uid: index,
+            name: file.filename, // Assuming your file object has a fileName property
+            status: 'done',
+            url: `${uploadUrl}${file.filename}`, // Assuming your file object has a fileUrl property
+          })
+        );
+
+        setExistingFiles(existingFilesArray);
+        console.log('editfiles');
+
+        const modifiedRecord = {
+          ...selectedRecord,
+          files: existingFilesArray,
+        };
+        form.setFieldsValue(modifiedRecord);
+        console.log(modifiedRecord);
+      } else {
+        form.setFieldsValue(selectedRecord);
+      }
+    }
+  }, [changeId, form]);
 
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
   const [visible, setVisible] = useState(false);
-  const [imageData, setImageData] = useState(null);
-  const webcamRef = useRef(null);
-  
-  const [fileList, setFileList] = useState([]);
 
-  const { departments } = useSelector((state) => state.department);
+  const webcamRef = useRef(null);
 
   useEffect(() => {
-    dispatch(fetchDepartmentsAsync())
+    dispatch(fetchDepartmentsAsync());
     console.log(departments);
     const optionDepartment = departments.map((key) => {
       return {
@@ -132,6 +190,14 @@ const VisitorAddForm = () => {
       };
       form.setFieldsValue(Record);
     }
+
+    if (
+      values.files === undefined ||
+      values.files === null ||
+      values.files.length === 0
+    ) {
+      delete values.files;
+    }
     // Append form values to the FormData object
     for (const key in values) {
       if (values.hasOwnProperty(key)) {
@@ -140,22 +206,52 @@ const VisitorAddForm = () => {
           await Promise.all(
             values[key].map(async (file, index) => {
               // Check if it's an Ant Design Upload file object
+              alert(file.name);
 
-              alert('file called');
-              // console.error('Error fetching file:', error);
-              formData.append(`files`, file.originFileObj);
+              try {
+                const res = await axios.get(`${uploadUrl}${file.name}`, {
+                  responseType: 'blob',
+                });
+                formData.append(
+                  'files',
+                  new File([res.data], file.name, { type: res.data.type })
+                );
+              } catch (error) {
+                // console.error('Error fetching file:', error);
+                formData.append(`files`, file.originFileObj);
+              }
 
               // formData.append(`files`, file.originFileObj);
             })
           );
         } else {
-          alert(key);
           formData.append(key, values[key]);
         }
       }
     }
 
-    dispatch(createVisitorAsync(formData));
+    // Log FormData entries
+    for (const pair of formData.entries()) {
+      console.log(pair[0] + ', ' + pair[1]);
+      if (pair[0] === 'files') {
+        console.log(pair[1]);
+      }
+    }
+
+    if (!editMode) {
+      dispatch(createVisitorAsync(formData));
+      if (!visitor_loading) {
+        form.resetFields();
+      }
+    } else {
+      alert(imageData);
+      formData.photo = imageData;
+      formData.id = changeId.changeId;
+      console.log('final data to post ', formData);
+      dispatch(updateVisitorAsync(formData));
+      navigate('/visitor-index');
+    }
+
     console.log('Received values:', formData);
   };
 
@@ -313,23 +409,23 @@ const VisitorAddForm = () => {
             <Input.TextArea />
           </FormItem>
           {!editMode && (
-    <FormItem
-        label="Check-in Time"
-        name="check_in_time"
-        rules={[
-            { required: true, message: 'Please select the check-in time!' },
-        ]}
-    >
-        <DatePicker
-            format="ddd, DD MMM YYYY HH:mm:ss [GMT]"
-            showTime={{
-                defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
-            }}
-            disabledDate={disabledDate}
-            disabledTime={disabledDateTime}
-        />
-    </FormItem>
-)}
+            <FormItem
+              label="Check-in Time"
+              name="check_in_time"
+              rules={[
+                { required: true, message: 'Please select the check-in time!' },
+              ]}
+            >
+              <DatePicker
+                format="ddd, DD MMM YYYY HH:mm:ss [GMT]"
+                showTime={{
+                  defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
+                }}
+                disabledDate={disabledDate}
+                disabledTime={disabledDateTime}
+              />
+            </FormItem>
+          )}
 
           <Form.Item
             name="files"
@@ -376,7 +472,7 @@ const VisitorAddForm = () => {
               ))}
             </Select>
           </FormItem>
-          
+
           <FormItem
             label="Host/Contact Person"
             name="host_contact_person"
@@ -389,8 +485,6 @@ const VisitorAddForm = () => {
           >
             <Input />
           </FormItem>
-
-
 
           <FormItem
             label="Mobile Number"
