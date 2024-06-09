@@ -10,9 +10,10 @@ import {
   message,
   DatePicker,
   TimePicker,
+  Tag,
   Select,
 } from 'antd';
-import { CameraOutlined, UploadOutlined } from '@ant-design/icons';
+import { CameraOutlined, UploadOutlined,InstagramOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import Webcam from 'react-webcam';
 import dayjs from 'dayjs';
@@ -53,7 +54,7 @@ const VisitorAddForm = () => {
       // alert(changeId.changeId)
       const fetchExistingFiles = async (file) => {
         try {
-          alert(`${uploadUrl}${file}`);
+          // alert(`${uploadUrl}${file}`);
           const response = await axios.get(`${uploadUrl}${file}`);
           setFileList([response.data]);
         } catch (error) {
@@ -64,20 +65,20 @@ const VisitorAddForm = () => {
       const changeEdit = visitors.filter(
         (change) => change.id == changeId.changeId
       );
-      const selectedRecord_initial = changeEdit[0];
+      const selectedRecord = changeEdit[0];
 
-      const departmentNameValue = departments
-        .filter(
-          (department) => department.id == selectedRecord_initial.department
-        )
-        .map((department) => department.name);
+      // const departmentNameValue = departments
+      //   .filter(
+      //     (department) => department.id == selectedRecord_initial.department
+      //   )
+      //   .map((department) => department.name);
 
-      alert(departmentNameValue);
+      // alert(departmentNameValue);
 
-      const selectedRecord = {
-        ...selectedRecord_initial,
-        department: departmentNameValue,
-      };
+      // const selectedRecord = {
+      //   ...selectedRecord_initial,
+      //   department: departmentNameValue,
+      // };
 
       // Append custom file objects based on file names
       if (selectedRecord.uploaded_files != null) {
@@ -121,7 +122,11 @@ const VisitorAddForm = () => {
         console.log(modifiedRecord);
       } else {
         form.setFieldsValue(selectedRecord);
+        
       }
+    } else {
+      form.resetFields();
+      setImageData(null)
     }
   }, [changeId, form]);
 
@@ -181,7 +186,9 @@ const VisitorAddForm = () => {
     alert('finish');
     console.log(imageData);
     const formData = new FormData();
-    alert(values.check_in_time);
+    // alert(values.check_in_time);
+
+    alert(values.department);
 
     if (imageData != null) {
       const Record = {
@@ -375,8 +382,8 @@ const VisitorAddForm = () => {
             name="photo"
             rules={[{ required: true, message: 'Please upload your photo!' }]}
           >
-            <Button icon={<CameraOutlined />} onClick={openCamera}>
-              Take PP Photo
+            <Button  onClick={openCamera}>
+              <b><Tag color="green"><CameraOutlined/>Take PP Photo</Tag></b>
             </Button>
           </FormItem>
 
@@ -485,6 +492,21 @@ const VisitorAddForm = () => {
           >
             <Input />
           </FormItem>
+
+          <FormItem
+            label="ID Card No"
+            name="id_card_no"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the ID Card No!',
+              },
+            ]}
+          >
+            <Input />
+          </FormItem>
+
+          
 
           <FormItem
             label="Mobile Number"

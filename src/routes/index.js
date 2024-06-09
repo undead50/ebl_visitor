@@ -8,6 +8,7 @@ import CameraComponent from '../pages/Test/Camera';
 import VisitorAddForm from '../pages/Visitor/addVisitor';
 import DepartmentTable from '../pages/Department';
 import VisitorTable from '../pages/Visitor';
+import EmployeeTable from '../pages/Employee';
 
 function MyRoutes() {
   return (
@@ -23,6 +24,7 @@ function MyRoutes() {
           <Route path="visitor-add/:changeId" element={<VisitorAddForm />} />
           <Route path="/department" element={<DepartmentTable/>}/>
           <Route path="/visitor-index" element={<VisitorTable/>}/>
+          <Route path="/employee" element={<EmployeeTable/>}/>
 
         </Route>
       </Routes>

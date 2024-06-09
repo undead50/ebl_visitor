@@ -9,6 +9,7 @@ import {
   SnippetsTwoTone,
   DisconnectOutlined,
   FileDoneOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import './index.css';
 
@@ -31,9 +32,12 @@ function SideBard() {
           <Link to={'/visitor-index'}>visitors-list</Link>
         </Menu.Item>
       </SubMenu>
-      <SubMenu key="sub2" icon={<FileDoneOutlined />} title="Settings">
+      <SubMenu key="sub2" icon={<SettingOutlined />} title="Settings">
         <Menu.Item key="9">
           <Link to={'/department'}>Department</Link>
+        </Menu.Item>
+        <Menu.Item key="10">
+          <Link to={'/employee'}>Employee</Link>
         </Menu.Item>
       </SubMenu>
     </Menu>
