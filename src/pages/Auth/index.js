@@ -2,17 +2,56 @@ import React, { useEffect } from 'react';
 import { Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser } from '../../store';
+import { postLoginData } from '../../store/slices/authSlice';
+import { useNotification } from '../../hooks/index';
 
 import './index.css';
 
 const Login = () => {
+  const dispatch = useDispatch();
   // alert('login')
+  const { data, loading, error } = useSelector((state) => state.auth);
   const { Title } = Typography;
   const navigate = useNavigate();
 
+  const { callNotification } = useNotification();
+
+
+  useEffect(() => {
+    if (data) {
+      if (data.Code === '0') {
+        console.log(data)
+        dispatch(
+          setUser({
+            userName: data.Data.domainName,
+            solId: data.Data.branch,
+            email: data.Data.email,
+            departmentName: data.Data.departmentName,
+            token: data.Data.token,
+            employeeName: data.Data.name,
+            isSuperAdmin: data.Data.systemRole === "ROLE_ADMIN" ? true : false,
+            
+          })
+        );
+        navigate('/');
+        callNotification('Login Success', 'success');
+      } else {
+        callNotification('Login Denied', 'error');
+      }
+    }
+  }, [data]);
+
   const onFinish = (values) => {
     // Call the postData function from the custom hook
-    navigate('/');
+    const reqData = {
+      username: values.username,
+      password: values.password,
+    };
+    dispatch(postLoginData(reqData));
+    // alert(data)
+    // console.log(data);
   };
 
   return (
@@ -28,7 +67,7 @@ const Login = () => {
       <Card className="custom-card">
         <div className="logo">
           <img
-            src={process.env.PUBLIC_URL + '/images/swift-logo-new.svg'}
+            src={process.env.PUBLIC_URL + '/images/everest_bank_logo_main.png'}
             alt="Logo"
           />
         </div>
@@ -42,7 +81,7 @@ const Login = () => {
             textShadow: '2px 2px 4px rgba(0, 0, 0, 0.2)',
           }}
         >
-          Everest Swift
+          Visitor Tracking System
         </Title>
 
         <Form name="login-form" onFinish={onFinish}>

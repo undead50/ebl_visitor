@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, DatePicker, Space,Tabs,Card,Tag,Image  } from 'antd';
+import { Table, Button, Modal, Form, Input, DatePicker, Space,Tabs,Card,Tag,Image,List  } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   createVisitorAsync,
     deleteVisitorAsync,
       fetchVisitorsAsync,
         updateVisitorAsync,
+        checkOutVisitorAsync,
 } from '../../store/slices/visitorSlice';
 import { encrypt, decrypt } from '../../hooks/crypto';
 import { useNavigate } from 'react-router-dom';
-import {EyeOutlined,EditOutlined,DeleteOutlined,ClockCircleOutlined,CheckOutlined,ExclamationCircleOutlined}  from '@ant-design/icons';
+import {EyeOutlined,EditOutlined,PrinterOutlined,DeleteOutlined,SearchOutlined,ClockCircleOutlined,CheckOutlined,ExclamationCircleOutlined}  from '@ant-design/icons';
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
+import './index.css'
 const { confirm } = Modal;
 // import { useNotification } from '../../hooks/index';
 
@@ -22,7 +24,8 @@ const VisitorTable = () => {
   const [formValues, setFormValues] = useState({});
   const [editMode, setEditMode] = useState(false);
   const { departments } = useSelector((state) => state.department);
-  const [isCheckOutModalVisible,setIsCheckOutModalVisible] = useState(false)
+  const [searchText, setSearchText] = useState('');
+  const uploadUrl = process.env.REACT_APP_FILE_PATH_URL;
 
   useEffect(() => {
     dispatch(fetchDepartmentsAsync());
@@ -41,9 +44,44 @@ const VisitorTable = () => {
     
     
     {
-      title: 'name',
+      title: 'Visitor Name',
         dataIndex: 'name',
           key: 'name',
+          filterSearch: true,
+        onFilter: (value, record) => record.name.toLowerCase().includes(value.toLowerCase()),
+        render: (_, record) => (
+          <span>
+            {record.name}
+          </span>
+        ),
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+          <div style={{ padding: 8 }}>
+            <Input
+              placeholder="Search name"
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+              onPressEnter={() => confirm()}
+              style={{ width: 188, marginBottom: 8, display: 'block' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  confirm();
+                  setSearchText(selectedKeys[0]);
+                }}
+              >
+                Search
+              </button>
+              <button type="button" onClick={() => clearFilters()}>
+                Reset
+              </button>
+            </div>
+          </div>
+        ),
+        filterIcon: (filtered) => (
+          <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+        ),
           },
     
           {
@@ -78,6 +116,12 @@ const VisitorTable = () => {
                 return null; // You can render something else for other statuses
               }
             },
+            // Define onFilter
+            onFilter: (value, record) => record.status === value,
+            filters: [
+              { text: 'IN', value: 'C' },
+              { text: 'OUT', value: 'O' },
+            ],
           },
     
     
@@ -105,8 +149,9 @@ const VisitorTable = () => {
         key: 'action',
           render: (_, record) => (
             <Space>
-              <Button onClick={() => handleEdit(record)}><EditOutlined /></Button>
-              <Button onClick={() => handleDelete(record)}><DeleteOutlined /></Button>
+
+              {record.status === "C"? <Button onClick={() => handleEdit(record)}><EditOutlined /></Button>:null}              
+              {/* <Button onClick={() => handleDelete(record)}><DeleteOutlined /></Button> */}
               <Button onClick={() => handleView(record)}><EyeOutlined /></Button>
               { record.check_out_time === null ? <Button onClick={() => handleCheckOut(record)}><CheckOutlined /></Button>:null}
               
@@ -134,14 +179,14 @@ const VisitorTable = () => {
   const items = [
     {
       key: '1',
-      label: 'Checked In Visitors',
+      label: 'Visitors Information',
       children: <Table dataSource={dataSource} columns={columns} />,
     },
-    {
-      key: '2',
-      label: 'Checked Out Visitors',
-      children: 'Content of Tab Pane 2',
-    }
+    // {
+    //   key: '2',
+    //   label: 'Checked Out Visitors',
+    //   children: 'Content of Tab Pane 2',
+    // }
   ];
 
   const handleCheckOut = (record) => {
@@ -157,7 +202,7 @@ const VisitorTable = () => {
         const updatedRecord = { ...record, check_out_time: formattedDate,status:'O' };
         
         // Dispatch updateVisitorAsync action with updatedRecord
-        dispatch(updateVisitorAsync(updatedRecord));
+        dispatch(checkOutVisitorAsync(updatedRecord));
       },
       onCancel() {
         console.log('Cancel');
@@ -204,6 +249,10 @@ const VisitorTable = () => {
     dispatch(fetchVisitorsAsync());
     console.log(visitors);
   }, []);
+
+  const handlePrint=() =>{
+    window.print();
+  }
 
 
   const onFinish = (values) => {
@@ -278,7 +327,11 @@ return (
   }}
   footer={null}
 >
+ 
+  
+
   <Card>
+  <div className="printable-content" id="printable-area">
   <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
     <thead>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
@@ -310,46 +363,70 @@ return (
       </tr>
       
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Name:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Name:</b></td>
         <td>{form.getFieldValue("name")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Address:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Address:</b></td>
         <td>{form.getFieldValue("address")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Purpose of Visit:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Purpose of Visit:</b></td>
         <td>{form.getFieldValue("purpose_of_visit")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Check-in Time:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Check-in Time:</b></td>
         <td>{form.getFieldValue("check_in_time")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Host Contact Person:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Host Contact Person:</b></td>
         <td>{form.getFieldValue("host_contact_person")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Department:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Department:</b></td>
         <td>
           {departments.find((department) => department.id === form.getFieldValue("department"))?.name}
         </td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Mobile No:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Mobile No:</b></td>
         <td>{form.getFieldValue("mobile_no")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>ID Card No:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>ID Card No:</b></td>
         <td>{form.getFieldValue("id_card_no")}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
-        <td>Signature:</td>
+        <td style={{display:'flex',justifyContent:'right'}}><b>Signature:</b></td>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
         <td style={{ borderTop: '1px solid black' }}></td>
       </tr>
     </tbody>
   </table>
+  </div>
+  <Card>
+  <List
+      header="File:"
+      bordered
+      dataSource={form.getFieldValue("uploaded_files")}
+      renderItem={(item) => (
+        <List.Item>
+          <a href={`${uploadUrl}${item.filename}`} target="_blank" rel="noopener noreferrer">
+            {item.originalname}
+          </a>
+        </List.Item>
+      )}
+    />
+    </Card>
+    <Card>
+    <Button size="large" onClick={handlePrint}>Print Pass<PrinterOutlined /></Button>
+    </Card>
   </Card>
+
 </Modal>
 
   </div>

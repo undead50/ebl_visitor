@@ -15,8 +15,9 @@ import {
 import { enc, AES } from 'crypto-js';
 import { visitorReducer } from './slices/visitorSlice';
 import { departmentReducer } from './slices/departmentSlice';
-import { userReducer } from './slices/userSlice';
+import { userReducer,setUser } from './slices/userSlice';
 import { employeeReducer } from './slices/employeeSlice';
+import { login, logout, FlushUserData, authReducer } from './slices/authSlice';
 
 const secretKey = '081fbadce74f99af29c8280fce633fb9';
 
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   department:departmentReducer,
   user: userReducer,
   employee: employeeReducer,
+  auth:authReducer,
 
 });
 
@@ -65,4 +67,5 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
-// export { login, logout, setUser, FlushUserData };
+export { login, logout, setUser, FlushUserData };
+// export {setUser};

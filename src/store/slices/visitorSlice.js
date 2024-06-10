@@ -41,6 +41,21 @@ export const createVisitorAsync = createAsyncThunk(
   }
 );
 
+export const checkOutVisitorAsync = createAsyncThunk(
+  'visitor/checkOutVisitor',
+  async (visitorData) => {
+    try {
+      const url = BACKEND_URL + `/visitor/checkOutVisitor/${visitorData.id
+    }`;
+      const response = await axiosInstance.put(url, visitorData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response.data.error);
+    }
+  }
+);
+
+
 export const updateVisitorAsync = createAsyncThunk(
   'visitor/updateVisitor',
   async (visitorData) => {
@@ -98,6 +113,26 @@ const visitorSlice = createSlice({
         callNotification('Operation Successfull', 'success');
       })
       .addCase(createVisitorAsync.rejected, (state, action) => {
+        state.visitor_loading = false;
+        state.error = action.error.message;
+        callNotification(state.error, 'error');
+      })
+      .addCase(checkOutVisitorAsync.pending, (state) => {
+        state.visitor_loading = true;
+        state.error = null;
+      })
+      .addCase(checkOutVisitorAsync.fulfilled, (state, action) => {
+        state.visitor_loading = false;
+        const updatedVisitor = action.payload;
+        const index = state.visitors.findIndex(
+          (visitor) => visitor.id === updatedVisitor.id
+        );
+        if (index !== -1) {
+          state.visitors[index] = updatedVisitor;
+        }
+        callNotification('Operation Successfull', 'success');
+      })
+      .addCase(checkOutVisitorAsync.rejected, (state, action) => {
         state.visitor_loading = false;
         state.error = action.error.message;
         callNotification(state.error, 'error');

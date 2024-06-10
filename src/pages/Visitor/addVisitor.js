@@ -43,6 +43,8 @@ const VisitorAddForm = () => {
 
   const uploadUrl = process.env.REACT_APP_FILE_PATH_URL;
 
+  const { userInfo } = useSelector((state) => state.user);
+
   const { visitors, visitor_loading, visitor_error } = useSelector(
     (state) => state.visitor
   );
@@ -183,12 +185,13 @@ const VisitorAddForm = () => {
   };
 
   const onFinish = async (values) => {
-    alert('finish');
-    console.log(imageData);
+    // alert('finish');
+    // console.log(imageData);
     const formData = new FormData();
     // alert(values.check_in_time);
+    values.sol_id = userInfo.solId
 
-    alert(values.department);
+    // alert(values.department);
 
     if (imageData != null) {
       const Record = {
@@ -213,7 +216,7 @@ const VisitorAddForm = () => {
           await Promise.all(
             values[key].map(async (file, index) => {
               // Check if it's an Ant Design Upload file object
-              alert(file.name);
+              // alert(file.name);
 
               try {
                 const res = await axios.get(`${uploadUrl}${file.name}`, {
@@ -246,20 +249,27 @@ const VisitorAddForm = () => {
     }
 
     if (!editMode) {
-      dispatch(createVisitorAsync(formData));
-      if (!visitor_loading) {
-        form.resetFields();
+      const confirmCreate = window.confirm("Are you sure you want to create this visitor?");
+      if (confirmCreate) {
+          dispatch(createVisitorAsync(formData));
+          if (!visitor_loading) {
+              form.resetFields();
+              setImageData(null);
+          }
       }
     } else {
-      alert(imageData);
-      formData.photo = imageData;
-      formData.id = changeId.changeId;
-      console.log('final data to post ', formData);
-      dispatch(updateVisitorAsync(formData));
-      navigate('/visitor-index');
+      // Confirmation for updating visitor
+      const confirmUpdate = window.confirm("Are you sure you want to update this visitor?");
+      if (confirmUpdate) {
+          formData.photo = imageData;
+          formData.id = changeId.changeId;
+          console.log('final data to post ', formData);
+          dispatch(updateVisitorAsync(formData));
+          navigate('/visitor-index');
+      }
     }
 
-    console.log('Received values:', formData);
+    // console.log('Received values:', formData);
   };
 
   const stopVideoStream = () => {
@@ -527,7 +537,7 @@ const VisitorAddForm = () => {
 
           <FormItem>
             <Button type="primary" htmlType="submit">
-              Submit
+              {editMode ? "Update":"Submit"}
             </Button>
           </FormItem>
         </Form>

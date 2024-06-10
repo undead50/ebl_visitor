@@ -1,0 +1,20 @@
+@media print {
+    body * {
+      visibility: hidden;
+    }
+    #printable-area,
+    #printable-area * {
+      visibility: visible;
+    }
+    #printable-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%; /* Ensure the printable area takes up the full width of the page */
+      height: 100%; /* Ensure the printable area takes up the full height of the page */
+      margin: 0; /* Remove any margin */
+      padding: 0; /* Remove any padding */
+      overflow: visible; /* Ensure content overflow is visible */
+    }
+  }
+  

@@ -18,8 +18,8 @@ import {
 import { Outlet, useNavigate, Navigate } from 'react-router-dom';
 import SideBar from '../../components/Sidebar';
 import { useSelector, useDispatch } from 'react-redux';
-// import { logout } from '../../store';
-// import { setUser, FlushUserData } from '../../store';
+import { logout } from '../../store';
+import { setUser, FlushUserData } from '../../store';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Text } = Typography;
@@ -27,8 +27,8 @@ const { Text } = Typography;
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  // const dispatch = useDispatch();
-  // const { userInfo } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.user);
 
   const handleCollapse = (collapsed) => {
     setCollapsed(collapsed);
@@ -87,17 +87,17 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     // Handle logout logic here
-    // dispatch(
-    //   setUser({
-    //     userName: null,
-    //     solId: null,
-    //     email: null,
-    //     departmentName: null,
-    //     token: null,
-    //   })
-    // );
-    // dispatch(FlushUserData());
-    // alert('removed from localstorage')
+    dispatch(
+      setUser({
+        userName: null,
+        solId: null,
+        email: null,
+        departmentName: null,
+        token: null,
+      })
+    );
+    dispatch(FlushUserData());
+    alert('removed from localstorage')
     navigate('/login');
   };
 

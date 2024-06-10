@@ -9,13 +9,23 @@ import VisitorAddForm from '../pages/Visitor/addVisitor';
 import DepartmentTable from '../pages/Department';
 import VisitorTable from '../pages/Visitor';
 import EmployeeTable from '../pages/Employee';
+import ProtectedRoute from '../components/ProtectedRoute';
+import Notfound from '../pages/System/404';
+
 
 function MyRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route element={<AdminLayout />}>
+        <Route path="*" element={<Notfound />}></Route>
+        <Route
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/" element={<Dashboard />} />
           <Route path="/create-report" element={<CreateReport />} />
           <Route path="/initiate-swift" element={<SwiftMessage />} />
