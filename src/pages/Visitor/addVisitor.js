@@ -13,7 +13,11 @@ import {
   Tag,
   Select,
 } from 'antd';
-import { CameraOutlined, UploadOutlined,InstagramOutlined } from '@ant-design/icons';
+import {
+  CameraOutlined,
+  UploadOutlined,
+  InstagramOutlined,
+} from '@ant-design/icons';
 import axios from 'axios';
 import Webcam from 'react-webcam';
 import dayjs from 'dayjs';
@@ -27,7 +31,6 @@ import {
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
 import { useEffect } from 'react';
 import { upload } from '@testing-library/user-event/dist/upload';
-
 
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -124,11 +127,10 @@ const VisitorAddForm = () => {
         console.log(modifiedRecord);
       } else {
         form.setFieldsValue(selectedRecord);
-        
       }
     } else {
       form.resetFields();
-      setImageData(null)
+      setImageData(null);
     }
   }, [changeId, form]);
 
@@ -187,12 +189,19 @@ const VisitorAddForm = () => {
   const onFinish = async (values) => {
     // alert('finish');
     // console.log(imageData);
+
+    if (!editMode) {
+      const check_in_time = dayjs();
+
+      const nepalTime = check_in_time.add(5, 'hours').add(45, 'minutes');
+      values.check_in_time = nepalTime;
+    }
+
     const formData = new FormData();
-    values.sol_id = userInfo.solId
-    const nepalTime = values.check_in_time.add(5, 'hours').add(45, 'minutes');
-    values.check_in_time = nepalTime;
+    values.sol_id = userInfo.solId;
+
     // alert(values.check_in_time)
-    // return 
+    // return
     if (imageData != null) {
       const Record = {
         ...values,
@@ -249,23 +258,27 @@ const VisitorAddForm = () => {
     }
 
     if (!editMode) {
-      const confirmCreate = window.confirm("Are you sure you want to create this visitor?");
+      const confirmCreate = window.confirm(
+        'Are you sure you want to create this visitor?'
+      );
       if (confirmCreate) {
-          dispatch(createVisitorAsync(formData));
-          if (!visitor_loading) {
-              form.resetFields();
-              setImageData(null);
-          }
+        dispatch(createVisitorAsync(formData));
+        if (!visitor_loading) {
+          form.resetFields();
+          setImageData(null);
+        }
       }
     } else {
       // Confirmation for updating visitor
-      const confirmUpdate = window.confirm("Are you sure you want to update this visitor?");
+      const confirmUpdate = window.confirm(
+        'Are you sure you want to update this visitor?'
+      );
       if (confirmUpdate) {
-          formData.photo = imageData;
-          formData.id = changeId.changeId;
-          console.log('final data to post ', formData);
-          dispatch(updateVisitorAsync(formData));
-          navigate('/visitor-index');
+        formData.photo = imageData;
+        formData.id = changeId.changeId;
+        console.log('final data to post ', formData);
+        dispatch(updateVisitorAsync(formData));
+        navigate('/visitor-index');
       }
     }
 
@@ -307,7 +320,8 @@ const VisitorAddForm = () => {
     // Disable dates after today
     return current && !dayjs(current).isSame(dayjs(), 'day');
   };
-
+  // Get current date and time
+  const defaultDateTime = dayjs(); // Use dayjs to handle date/time
   const disabledDateTime = (current) => {
     // Disable times before current time if date is today
     if (current && current.isSame(dayjs(), 'day')) {
@@ -406,8 +420,13 @@ const VisitorAddForm = () => {
             name="photo"
             rules={[{ required: true, message: 'Please upload your photo!' }]}
           >
-            <Button  onClick={openCamera}>
-              <b><Tag color="green"><CameraOutlined/>Take PP Photo</Tag></b>
+            <Button onClick={openCamera}>
+              <b>
+                <Tag color="green">
+                  <CameraOutlined />
+                  Take PP Photo
+                </Tag>
+              </b>
             </Button>
           </FormItem>
 
@@ -439,23 +458,27 @@ const VisitorAddForm = () => {
           >
             <Input.TextArea />
           </FormItem>
-          {!editMode && (
+          {/* {!editMode && (
             <FormItem
-            label="Check-in Time"
-            name="check_in_time"
-            rules={[{ required: true, message: 'Please select the check-in time!' }]}
-          >
-           <DatePicker
-              style={{ width: 250 }}
-              format="ddd, DD MMM YYYY hh:mm A"
-              showTime={{
-                format: 'hh:mm A',
-              }}
-              disabledDate={disabledDate}
-              disabledTime={disabledDateTime}
-            />
-          </FormItem>
-          )}
+              label="Check-in Time"
+              name="check_in_time"
+              rules={[
+                { required: true, message: 'Please select the check-in time!' },
+              ]}
+              style={{ display: 'none' }}
+              initialValue={defaultDateTime} // Set default value to current date and time
+            >
+              <DatePicker
+                style={{ width: 250 }}
+                format="ddd, DD MMM YYYY hh:mm A"
+                showTime={{
+                  format: 'hh:mm A',
+                }}
+                disabledDate={disabledDate}
+                disabledTime={disabledDateTime}
+              />
+            </FormItem>
+          )} */}
 
           <Form.Item
             name="files"
@@ -529,8 +552,6 @@ const VisitorAddForm = () => {
             <Input />
           </FormItem>
 
-          
-
           <FormItem
             label="Mobile Number"
             name="mobile_no"
@@ -550,7 +571,7 @@ const VisitorAddForm = () => {
 
           <FormItem>
             <Button type="primary" htmlType="submit">
-              {editMode ? "Update":"Submit"}
+              {editMode ? 'Update' : 'Submit'}
             </Button>
           </FormItem>
         </Form>
