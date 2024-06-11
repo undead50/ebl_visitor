@@ -8,6 +8,9 @@ import { postLoginData } from '../../store/slices/authSlice';
 import { useNotification } from '../../hooks/index';
 
 import './index.css';
+import { resetStateDepartment } from '../../store/slices/departmentSlice';
+import { resetStateEmployee } from '../../store/slices/employeeSlice';
+import { resetStateVisitor } from '../../store/slices/visitorSlice';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -17,6 +20,13 @@ const Login = () => {
   const navigate = useNavigate();
 
   const { callNotification } = useNotification();
+  useEffect(() => {
+   dispatch(resetStateDepartment())
+   dispatch(resetStateEmployee())
+   dispatch(resetStateVisitor())
+
+  }, []);
+
 
 
   useEffect(() => {
@@ -25,7 +35,7 @@ const Login = () => {
         console.log(data)
         dispatch(
           setUser({
-            userName: data.Data.domainName,
+            userName: data.Data.domain_name,
             solId: data.Data.branch,
             email: data.Data.email,
             departmentName: data.Data.departmentName,

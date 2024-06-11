@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import {EyeOutlined,EditOutlined,PrinterOutlined,DeleteOutlined,SearchOutlined,ClockCircleOutlined,CheckOutlined,ExclamationCircleOutlined}  from '@ant-design/icons';
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
 import './index.css'
+import dayjs from 'dayjs';
+
 const { confirm } = Modal;
 // import { useNotification } from '../../hooks/index';
 
@@ -130,6 +132,7 @@ const VisitorTable = () => {
       title: 'check_in_time',
         dataIndex: 'check_in_time',
           key: 'check_in_time',
+          render: (text) => formatDateAndTime(text),
           },
           {
             title: 'check_out_time',
@@ -138,7 +141,7 @@ const VisitorTable = () => {
               if (record.check_out_time === null) {
                 return <ClockCircleOutlined/> ;
               } else {
-                return record.check_out_time;
+                return formatDateAndTime(record.check_out_time);
               }
             },
           },
@@ -151,7 +154,7 @@ const VisitorTable = () => {
             <Space>
 
               {record.status === "C"? <Button onClick={() => handleEdit(record)}><EditOutlined /></Button>:null}              
-              {/* <Button onClick={() => handleDelete(record)}><DeleteOutlined /></Button> */}
+              <Button onClick={() => handleDelete(record)}><DeleteOutlined /></Button>
               <Button onClick={() => handleView(record)}><EyeOutlined /></Button>
               { record.check_out_time === null ? <Button onClick={() => handleCheckOut(record)}><CheckOutlined /></Button>:null}
               
@@ -169,6 +172,17 @@ const VisitorTable = () => {
     (state) => state.visitor
   );
   
+  const formatDateAndTime = (datetimeString) => {
+    const date = new Date(datetimeString);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    let hours = date.getUTCHours();
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const period = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
+    return `${year}-${month}-${day} ${hours}:${minutes} ${period}`;
+  };
   
   const dataSource = visitors;
   
@@ -192,7 +206,6 @@ const VisitorTable = () => {
   const handleCheckOut = (record) => {
     const currentDate = new Date();
     const formattedDate = new Date(currentDate);
-  
     Modal.confirm({
       title: 'Confirm Checkout',
       icon: <ExclamationCircleOutlined />,

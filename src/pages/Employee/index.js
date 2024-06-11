@@ -66,7 +66,7 @@ const EmployeeTable = () => {
 
   const onFinish = (values) => {
     console.log(values);
-    values.CreatedBy = userInfo.userName;
+    values.created_by = userInfo.userName;
     if (editMode) {
       dispatch(updateEmployeeAsync(values));
       // callNotification('Employee Edited Successfully', 'success');
@@ -132,9 +132,9 @@ const EmployeeTable = () => {
       },
 
 {
-  title: 'domainName',
-    dataIndex: 'domainName',
-      key: 'domainName',
+  title: 'domain_name',
+    dataIndex: 'domain_name',
+      key: 'domain_name',
       },
 
 
@@ -188,15 +188,15 @@ const EmployeeTable = () => {
 
 
 {
-  title: 'departmentName',
-    dataIndex: 'departmentName',
-      key: 'departmentName',
+  title: 'department_name',
+    dataIndex: 'department_name',
+      key: 'department_name',
       },
 
       {
-        title: 'cbsUsername',
-          dataIndex: 'cbsUsername',
-            key: 'cbsUsername',
+        title: 'cbs_username',
+          dataIndex: 'cbs_username',
+            key: 'cbs_username',
             },
 
 
@@ -208,17 +208,17 @@ const EmployeeTable = () => {
       },
       {
         title: 'System Role',
-          dataIndex: 'systemRole',
-            key: 'systemRole',
+          dataIndex: 'system_role',
+            key: 'system_role',
             },
 
             {
               title: 'Status',
-              dataIndex: 'isActive',
-              key: 'isActive',
-              render: (isActive) => (
-                <Tag color={isActive === 'Y' ? 'green' : 'red'} className={isActive === 'Y' ? 'blink' : ''}>
-          {isActive === 'Y' ? 'Active' : 'Inactive'}
+              dataIndex: 'is_active',
+              key: 'is_active',
+              render: (is_active) => (
+                <Tag color={is_active === 'Y' ? 'green' : 'red'} className={is_active === 'Y' ? 'blink' : ''}>
+          {is_active === 'Y' ? 'Active' : 'Inactive'}
         </Tag>
               ),
             },   
@@ -318,10 +318,10 @@ return (
         <Form.Item name="name" label="name">
           <Input />
         </Form.Item>
-        <Form.Item name="cbsUsername" label="cbsUsername">
+        <Form.Item name="cbs_username" label="cbs_username">
           <Input />
         </Form.Item>
-        <Form.Item name="domainName" label="domainName">
+        <Form.Item name="domain_name" label="domain_name">
           <Input />
         </Form.Item>
         
@@ -329,7 +329,7 @@ return (
           <Input />
         </Form.Item>
         
-        <Form.Item name="departmentName" label="departmentName">
+        <Form.Item name="department_name" label="department_name">
           <Input />
         </Form.Item>
         
@@ -337,14 +337,14 @@ return (
           <Input />
         </Form.Item>
 
-        <Form.Item name="isActive" label="isActive">
+        <Form.Item name="is_active" label="is_active">
         <Select>
           <Option value="Y">Active</Option>
           <Option value="N">InActive</Option>
         </Select>
         </Form.Item>
 
-        <Form.Item name="systemRole" label="System Role">
+        <Form.Item name="system_role" label="System Role">
         <Select>
           <Option value="ROLE_USER">User</Option>
           <Option value="ROLE_ADMIN">Admin</Option>

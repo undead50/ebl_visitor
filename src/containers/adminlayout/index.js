@@ -97,7 +97,7 @@ const AdminLayout = () => {
       })
     );
     dispatch(FlushUserData());
-    alert('removed from localstorage')
+    // alert('removed from localstorage')
     navigate('/login');
   };
 

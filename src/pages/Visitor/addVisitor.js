@@ -27,7 +27,7 @@ import {
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
 import { useEffect } from 'react';
 import { upload } from '@testing-library/user-event/dist/upload';
-dayjs.extend(customParseFormat);
+
 
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -158,10 +158,10 @@ const VisitorAddForm = () => {
     return result;
   };
 
-  const disabledDate = (current) => {
-    // Can not select days before today and today
-    return current && current < dayjs().endOf('day');
-  };
+  // const disabledDate = (current) => {
+  //   // Can not select days before today and today
+  //   return current && current < dayjs().endOf('day');
+  // };
 
   const props = {
     action: 'https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188',
@@ -188,11 +188,11 @@ const VisitorAddForm = () => {
     // alert('finish');
     // console.log(imageData);
     const formData = new FormData();
-    // alert(values.check_in_time);
     values.sol_id = userInfo.solId
-
-    // alert(values.department);
-
+    const nepalTime = values.check_in_time.add(5, 'hours').add(45, 'minutes');
+    values.check_in_time = nepalTime;
+    // alert(values.check_in_time)
+    // return 
     if (imageData != null) {
       const Record = {
         ...values,
@@ -298,12 +298,26 @@ const VisitorAddForm = () => {
     form.setFieldsValue({ photo: imageSrc }); // Set the image data in the form field
   };
 
-  const disabledDateTime = () => ({
-    disabledHours: () => range(0, 24).splice(4, 20),
-    disabledMinutes: () => range(30, 60),
-    disabledSeconds: () => [55, 56],
-  });
+  // const disabledDateTime = () => ({
+  //   disabledHours: () => range(0, 24).splice(4, 20),
+  //   disabledMinutes: () => range(30, 60),
+  //   disabledSeconds: () => [55, 56],
+  // });
+  const disabledDate = (current) => {
+    // Disable dates after today
+    return current && !dayjs(current).isSame(dayjs(), 'day');
+  };
 
+  const disabledDateTime = (current) => {
+    // Disable times before current time if date is today
+    if (current && current.isSame(dayjs(), 'day')) {
+      return {
+        disabledHours: () => [...Array(dayjs().hour()).keys()],
+        disabledMinutes: () => [...Array(dayjs().minute()).keys()],
+        disabledSeconds: () => [...Array(dayjs().second()).keys()],
+      };
+    }
+  };
   const closeModal = () => {
     setVisible(false);
     stopVideoStream(); // Stop the video stream when the modal is closed
@@ -427,21 +441,20 @@ const VisitorAddForm = () => {
           </FormItem>
           {!editMode && (
             <FormItem
-              label="Check-in Time"
-              name="check_in_time"
-              rules={[
-                { required: true, message: 'Please select the check-in time!' },
-              ]}
-            >
-              <DatePicker
-                format="ddd, DD MMM YYYY HH:mm:ss [GMT]"
-                showTime={{
-                  defaultValue: dayjs('00:00:00', 'HH:mm:ss'),
-                }}
-                disabledDate={disabledDate}
-                disabledTime={disabledDateTime}
-              />
-            </FormItem>
+            label="Check-in Time"
+            name="check_in_time"
+            rules={[{ required: true, message: 'Please select the check-in time!' }]}
+          >
+           <DatePicker
+              style={{ width: 250 }}
+              format="ddd, DD MMM YYYY hh:mm A"
+              showTime={{
+                format: 'hh:mm A',
+              }}
+              disabledDate={disabledDate}
+              disabledTime={disabledDateTime}
+            />
+          </FormItem>
           )}
 
           <Form.Item
