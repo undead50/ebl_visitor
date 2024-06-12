@@ -16,6 +16,7 @@ import {
 import {
   CameraOutlined,
   UploadOutlined,
+  ScanOutlined,
   InstagramOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
@@ -43,6 +44,8 @@ const VisitorAddForm = () => {
   const [existingFiles, setExistingFiles] = useState([]);
   const [fileList, setFileList] = useState([]);
   const { departments } = useSelector((state) => state.department);
+
+  const { cards } = useSelector((state) => state.card);
 
   const uploadUrl = process.env.REACT_APP_FILE_PATH_URL;
 
@@ -136,7 +139,9 @@ const VisitorAddForm = () => {
 
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
+  const [cardOptions,setCardOptions] = useState([]);
   const [visible, setVisible] = useState(false);
+  const [visibleScan,setVisibleScan] = useState(false)
 
   const webcamRef = useRef(null);
 
@@ -150,6 +155,14 @@ const VisitorAddForm = () => {
       };
     });
     setOptions(optionDepartment);
+
+    const optionCards = cards.map((key)=>{
+      return {
+        value: key.id,
+        label: key.card_no
+      }
+    })
+    setCardOptions(optionCards);
   }, []);
 
   const range = (start, end) => {
@@ -292,6 +305,18 @@ const VisitorAddForm = () => {
     }
   };
 
+  const openCameraScan = () => {
+
+    setVisibleScan(true);
+    if (webcamRef.current && !webcamRef.current.stream) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((mediaStream) => {
+          webcamRef.current.srcObject = mediaStream;
+        });
+    }
+  };
+
   const openCamera = () => {
     setImageData(null);
     setVisible(true);
@@ -304,6 +329,47 @@ const VisitorAddForm = () => {
     }
   };
 
+  const dataURItoBlob = (dataURI) => {
+    // Convert base64/URLEncoded data component to raw binary data held in a string
+    const byteString = atob(dataURI.split(',')[1]);
+  
+    // Separate the mime component
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+  
+    // Write the bytes of the string to an ArrayBuffer
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+  
+    // Create a Blob from the ArrayBuffer
+    return new Blob([ab], { type: mimeString });
+  };
+
+  const captureImageScan = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImageData(imageSrc);
+    setVisible(false);
+  
+    // Create a unique filename for each scanned document
+    const timestamp = Date.now(); // Get current timestamp
+    const randomString = Math.random().toString(36).substring(7); // Generate random string
+    const filename = `scanned_document_${timestamp}_${randomString}.jpg`;
+  
+    // Create a File object from the image data with the unique filename
+    const blob = dataURItoBlob(imageSrc);
+    const scannedDocumentFile = new File([blob], filename);
+  
+    // Get the current value of the files form field
+    const currentFiles = form.getFieldValue('files') || [];
+  
+    // Append the scanned document file to the current files array
+    const updatedFiles = [...currentFiles, scannedDocumentFile];
+  
+    // Set the updated files array in the form field
+    form.setFieldsValue({ files: updatedFiles });
+  };
   const captureImage = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     setImageData(imageSrc);
@@ -332,6 +398,13 @@ const VisitorAddForm = () => {
       };
     }
   };
+  const closeModalScan = () => {
+    setVisibleScan(false);
+    stopVideoStream(); // Stop the video stream when the modal is closed
+    if (webcamRef.current) {
+      webcamRef.current.srcObject = null; // Reset the webcam reference
+    }
+  };
   const closeModal = () => {
     setVisible(false);
     stopVideoStream(); // Stop the video stream when the modal is closed
@@ -348,6 +421,43 @@ const VisitorAddForm = () => {
         background: '#F1F2F5',
       }}
     >
+      <Modal
+        title="Scan"
+        visible={visibleScan}
+        destroyOnClose={true}
+        onCancel={closeModalScan}
+        footer={[
+          <Button key="capture" onClick={captureImageScan}>
+            Capture Image
+          </Button>,
+          <Button key="cancel" onClick={closeModalScan}>
+            Cancel
+          </Button>,
+        ]}
+      >
+        <div style={{ position: 'relative' }}>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            style={{ width: '100%' }}
+          />
+          {imageData === null && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                border: '2px solid red',
+                width: '250px',
+                height: '250px',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+        </div>
+      </Modal>
       <Modal
         title="Camera Preview"
         visible={visible}
@@ -497,6 +607,7 @@ const VisitorAddForm = () => {
               },
             ]}
           >
+            
             <Upload
               {...props}
               multiple
@@ -504,8 +615,18 @@ const VisitorAddForm = () => {
               accept=".pdf,.jpg,.jpeg,.xlsx,.txt,.xls"
             >
               <Button icon={<UploadOutlined />}>Click to Upload</Button>
+              
             </Upload>
+            
           </Form.Item>
+            <Button size = "middle" onClick={openCameraScan}>
+              <b>
+                <Tag color="green">
+                <ScanOutlined />
+                &nbsp; Scan Doc
+                </Tag>
+              </b>
+            </Button>
 
           <FormItem
             label="Name of Visiting Department"
@@ -549,7 +670,13 @@ const VisitorAddForm = () => {
               },
             ]}
           >
-            <Input />
+            <Select placeholder="Select Visitor Card">
+            {cardOptions.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
           </FormItem>
 
           <FormItem

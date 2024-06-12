@@ -11,6 +11,7 @@ import VisitorTable from '../pages/Visitor';
 import EmployeeTable from '../pages/Employee';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Notfound from '../pages/System/404';
+import CardTable from '../pages/Card';
 
 
 function MyRoutes() {
@@ -35,6 +36,7 @@ function MyRoutes() {
           <Route path="/department" element={<DepartmentTable/>}/>
           <Route path="/visitor-index" element={<VisitorTable/>}/>
           <Route path="/employee" element={<EmployeeTable/>}/>
+          <Route path="/card-index" element={<CardTable/>}/>
 
         </Route>
       </Routes>

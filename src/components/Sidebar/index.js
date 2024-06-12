@@ -18,6 +18,8 @@ const { SubMenu } = Menu;
 function SideBard() {
   // const { userInfo } = useSelector((state) => state.user);
 
+  const { userInfo } = useSelector((state) => state.user);
+
   return (
     // <div className='custom-scrollbar-sidebar'>
     <Menu theme="light" defaultSelectedKeys={['1']} mode="inline">
@@ -31,15 +33,19 @@ function SideBard() {
         <Menu.Item key="7">
           <Link to={'/visitor-index'}>visitors-list</Link>
         </Menu.Item>
+        <Menu.Item key="11">
+          <Link to={'/card-index'}>id-card-no</Link>
+        </Menu.Item>
       </SubMenu>
-      <SubMenu key="sub2" icon={<SettingOutlined />} title="Settings">
+      {userInfo.isSuperAdmin ? (<SubMenu key="sub2" icon={<SettingOutlined />} title="Settings">
         <Menu.Item key="9">
           <Link to={'/department'}>Department</Link>
         </Menu.Item>
         <Menu.Item key="10">
           <Link to={'/employee'}>Employee</Link>
         </Menu.Item>
-      </SubMenu>
+      </SubMenu>):null}
+      
     </Menu>
     // </div>
   );

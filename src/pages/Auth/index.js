@@ -11,6 +11,7 @@ import './index.css';
 import { resetStateDepartment } from '../../store/slices/departmentSlice';
 import { resetStateEmployee } from '../../store/slices/employeeSlice';
 import { resetStateVisitor } from '../../store/slices/visitorSlice';
+import { resetStateUser } from '../../store/slices/userSlice';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -24,6 +25,7 @@ const Login = () => {
    dispatch(resetStateDepartment())
    dispatch(resetStateEmployee())
    dispatch(resetStateVisitor())
+   dispatch(resetStateUser())
 
   }, []);
 
@@ -38,10 +40,10 @@ const Login = () => {
             userName: data.Data.domain_name,
             solId: data.Data.branch,
             email: data.Data.email,
-            departmentName: data.Data.departmentName,
+            departmentName: data.Data.department_name,
             token: data.Data.token,
             employeeName: data.Data.name,
-            isSuperAdmin: data.Data.systemRole === "ROLE_ADMIN" ? true : false,
+            isSuperAdmin: data.Data.system_role === "ROLE_ADMIN" ? true : false,
             
           })
         );

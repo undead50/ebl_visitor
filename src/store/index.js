@@ -18,6 +18,7 @@ import { departmentReducer } from './slices/departmentSlice';
 import { userReducer,setUser } from './slices/userSlice';
 import { employeeReducer } from './slices/employeeSlice';
 import { login, logout, FlushUserData, authReducer } from './slices/authSlice';
+import { cardReducer } from './slices/cardSlice';
 
 const secretKey = '081fbadce74f99af29c8280fce633fb9';
 
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   employee: employeeReducer,
   auth:authReducer,
+  card:cardReducer,
 
 });
 
@@ -49,6 +51,7 @@ const persistConfig = {
     'auth',
     'user',
     'visitor',
+    'card',
     'department',
   ],
 };
