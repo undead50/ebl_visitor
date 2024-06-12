@@ -139,9 +139,9 @@ const VisitorAddForm = () => {
 
   const dispatch = useDispatch();
   const [options, setOptions] = useState([]);
-  const [cardOptions,setCardOptions] = useState([]);
+  const [cardOptions, setCardOptions] = useState([]);
   const [visible, setVisible] = useState(false);
-  const [visibleScan,setVisibleScan] = useState(false)
+  const [visibleScan, setVisibleScan] = useState(false);
 
   const webcamRef = useRef(null);
 
@@ -156,12 +156,12 @@ const VisitorAddForm = () => {
     });
     setOptions(optionDepartment);
 
-    const optionCards = cards.map((key)=>{
+    const optionCards = cards.map((key) => {
       return {
         value: key.id,
-        label: key.card_no
-      }
-    })
+        label: key.card_no,
+      };
+    });
     setCardOptions(optionCards);
   }, []);
 
@@ -306,7 +306,6 @@ const VisitorAddForm = () => {
   };
 
   const openCameraScan = () => {
-
     setVisibleScan(true);
     if (webcamRef.current && !webcamRef.current.stream) {
       navigator.mediaDevices
@@ -332,44 +331,55 @@ const VisitorAddForm = () => {
   const dataURItoBlob = (dataURI) => {
     // Convert base64/URLEncoded data component to raw binary data held in a string
     const byteString = atob(dataURI.split(',')[1]);
-  
+
     // Separate the mime component
     const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-  
+
     // Write the bytes of the string to an ArrayBuffer
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) {
       ia[i] = byteString.charCodeAt(i);
     }
-  
+
     // Create a Blob from the ArrayBuffer
     return new Blob([ab], { type: mimeString });
   };
 
   const captureImageScan = () => {
     const imageSrc = webcamRef.current.getScreenshot();
-    setImageData(imageSrc);
+    console.log('Image source:', imageSrc);
     setVisible(false);
-  
-    // Create a unique filename for each scanned document
-    const timestamp = Date.now(); // Get current timestamp
-    const randomString = Math.random().toString(36).substring(7); // Generate random string
+
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(7);
     const filename = `scanned_document_${timestamp}_${randomString}.jpg`;
-  
-    // Create a File object from the image data with the unique filename
     const blob = dataURItoBlob(imageSrc);
+    console.log('Blob:', blob);
     const scannedDocumentFile = new File([blob], filename);
-  
-    // Get the current value of the files form field
+    console.log('Scanned Document File:', scannedDocumentFile);
+
     const currentFiles = form.getFieldValue('files') || [];
-  
-    // Append the scanned document file to the current files array
-    const updatedFiles = [...currentFiles, scannedDocumentFile];
-  
-    // Set the updated files array in the form field
+    console.log('Current Files:', currentFiles);
+
+    // Format the scannedDocumentFile before adding it to the array
+    const formattedScannedDocumentFile = {
+      uid: `scanned_document_${timestamp}_${randomString}`, // Provide a unique identifier
+      lastModified: timestamp,
+      lastModifiedDate: new Date(timestamp),
+      name: filename,
+      size: blob.size,
+      type: blob.type,
+      originFileObj: scannedDocumentFile,
+      thumbUrl: imageSrc, // Provide thumbUrl if available
+    };
+
+    const updatedFiles = [...currentFiles, formattedScannedDocumentFile];
+    console.log('Updated Files:', updatedFiles);
+
     form.setFieldsValue({ files: updatedFiles });
   };
+
   const captureImage = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     setImageData(imageSrc);
@@ -422,13 +432,13 @@ const VisitorAddForm = () => {
       }}
     >
       <Modal
-        title="Scan"
+        title="Scan Document"
         visible={visibleScan}
         destroyOnClose={true}
         onCancel={closeModalScan}
         footer={[
           <Button key="capture" onClick={captureImageScan}>
-            Capture Image
+            Capture Document
           </Button>,
           <Button key="cancel" onClick={closeModalScan}>
             Cancel
@@ -442,20 +452,22 @@ const VisitorAddForm = () => {
             screenshotFormat="image/jpeg"
             style={{ width: '100%' }}
           />
-          {imageData === null && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                border: '2px solid red',
-                width: '250px',
-                height: '250px',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
+
+          {/* Adjusted frame div */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              border: '2px solid red',
+              width: '80%', // Adjust width to cover most of the webcam feed
+              aspectRatio: '1/1', // Maintain aspect ratio (square frame)
+              maxWidth: '300px', // Limit maximum width
+              maxHeight: '300px', // Limit maximum height
+              zIndex: 999, // Ensure the frame div is on top of the webcam feed
+            }}
+          />
         </div>
       </Modal>
       <Modal
@@ -607,7 +619,6 @@ const VisitorAddForm = () => {
               },
             ]}
           >
-            
             <Upload
               {...props}
               multiple
@@ -615,18 +626,16 @@ const VisitorAddForm = () => {
               accept=".pdf,.jpg,.jpeg,.xlsx,.txt,.xls"
             >
               <Button icon={<UploadOutlined />}>Click to Upload</Button>
-              
             </Upload>
-            
           </Form.Item>
-            <Button size = "middle" onClick={openCameraScan}>
-              <b>
-                <Tag color="green">
+          <Button size="middle" onClick={openCameraScan}>
+            <b>
+              <Tag color="green">
                 <ScanOutlined />
                 &nbsp; Scan Doc
-                </Tag>
-              </b>
-            </Button>
+              </Tag>
+            </b>
+          </Button>
 
           <FormItem
             label="Name of Visiting Department"
@@ -671,7 +680,7 @@ const VisitorAddForm = () => {
             ]}
           >
             <Select placeholder="Select Visitor Card">
-            {cardOptions.map((option) => (
+              {cardOptions.map((option) => (
                 <Option key={option.value} value={option.value}>
                   {option.label}
                 </Option>
