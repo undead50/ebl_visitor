@@ -10,15 +10,54 @@ import {
 } from '../../store/slices/visitorSlice';
 import { encrypt, decrypt } from '../../hooks/crypto';
 import { useNavigate } from 'react-router-dom';
-import {EyeOutlined,EditOutlined,PrinterOutlined,DeleteOutlined,SearchOutlined,ClockCircleOutlined,CheckOutlined,ExclamationCircleOutlined}  from '@ant-design/icons';
+import {FileExcelOutlined,EyeOutlined,EditOutlined,PrinterOutlined,DeleteOutlined,SearchOutlined,ClockCircleOutlined,CheckOutlined,ExclamationCircleOutlined}  from '@ant-design/icons';
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
 import './index.css'
 import dayjs from 'dayjs';
+import { fetchCardsAsync } from '../../store/slices/cardSlice';
+import * as XLSX from 'xlsx';
 
 const { confirm } = Modal;
 // import { useNotification } from '../../hooks/index';
 
 const VisitorTable = () => {
+
+
+  const exportToExcel = () => {
+    // Generate a timestamp string in ISO 8601 format
+    const timestamp = new Date().toISOString();
+  
+    // Remove the 'T' and '.000Z' parts to get a cleaner filename format
+    const cleanTimestamp = timestamp.replace(/[-T:\.Z]/g, '');
+  
+    // Append the timestamp to the base filename
+    const fileName = `${cleanTimestamp}.xlsx`;
+
+    // Create a new worksheet
+    const ws = XLSX.utils.json_to_sheet(dataSource.map(item => {
+        // Find department name by its id
+        const department = departments.find(department => department.id === item.department);
+
+        // Customize the data format if needed
+        return {
+            visitor_name: item.name,
+            Department: department ? department.name : '', // If department found, use its name, otherwise empty string
+            host_contact_person: item.host_contact_person,
+            status: item.status === "C" ? "IN" : "OUT",
+            check_in_time: formatDateAndTime(item.check_in_time),
+            check_out_time: formatDateAndTime(item.check_out_time)
+            // Add more columns as needed
+        };
+    }));
+
+    // Create a new workbook and add the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Visitors');
+
+    // Write the workbook to a file
+    XLSX.writeFile(wb, fileName);
+};
+  
 
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -26,8 +65,16 @@ const VisitorTable = () => {
   const [formValues, setFormValues] = useState({});
   const [editMode, setEditMode] = useState(false);
   const { departments } = useSelector((state) => state.department);
+  const { cards } = useSelector((state)=> state.card);
   const [searchText, setSearchText] = useState('');
+  const [searchCheckInTime, setSearchCheckInTime] = useState('');
+  const [searchCheckOutTime, setSearchCheckOutTime] = useState('');
   const uploadUrl = process.env.REACT_APP_FILE_PATH_URL;
+
+  useEffect(()=>{
+    dispatch(fetchCardsAsync())
+
+  },[])
 
   useEffect(() => {
     dispatch(fetchDepartmentsAsync());
@@ -132,7 +179,39 @@ const VisitorTable = () => {
       title: 'check_in_time',
         dataIndex: 'check_in_time',
           key: 'check_in_time',
-          render: (text) => formatDateAndTime(text),
+          render: (text) =>formatDateAndTime(text),
+          filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+            <div style={{ padding: 8 }}>
+              <DatePicker
+                style={{ marginBottom: 8, display: 'block' }}
+                value={selectedKeys.length > 0? dayjs(selectedKeys[0], 'YYYY-MM-DD') : null}
+                format="YYYY-MM-DD"
+                onChange={(date, dateString) => setSelectedKeys(dateString? [dateString] : [])}
+              />
+              <Space>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    confirm();
+                    setSearchCheckInTime(selectedKeys[0]); // Updated to use setSearchCheckInTime
+                  }}
+                  icon={<SearchOutlined />}
+                  size="small"
+                  style={{ width: 90 }}
+                >
+                  Search
+                </Button>
+                <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
+                  Reset
+                </Button>
+              </Space>
+            </div>
+          ),
+          onFilter: (value, record) => {
+            const formattedValue = dayjs(value).format('YYYY-MM-DD');
+            const formattedCheckInTime = dayjs(record.check_in_time).format('YYYY-MM-DD');
+            return formattedValue === formattedCheckInTime;
+          },
           },
           {
             title: 'check_out_time',
@@ -143,6 +222,38 @@ const VisitorTable = () => {
               } else {
                 return formatDateAndTime(record.check_out_time);
               }
+            },
+            filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+              <div style={{ padding: 8 }}>
+                <DatePicker
+                  style={{ marginBottom: 8, display: 'block' }}
+                  value={selectedKeys.length > 0? dayjs(selectedKeys[0], 'YYYY-MM-DD') : null}
+                  format="YYYY-MM-DD"
+                  onChange={(date, dateString) => setSelectedKeys(dateString? [dateString] : [])}
+                />
+                <Space>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      confirm();
+                      setSearchCheckOutTime(selectedKeys[0]); // Updated to use setSearchCheckInTime
+                    }}
+                    icon={<SearchOutlined />}
+                    size="small"
+                    style={{ width: 90 }}
+                  >
+                    Search
+                  </Button>
+                  <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
+                    Reset
+                  </Button>
+                </Space>
+              </div>
+            ),
+            onFilter: (value, record) => {
+              const formattedValue = dayjs(value).format('YYYY-MM-DD');
+              const formattedCheckOutTime = dayjs(record.check_in_time).format('YYYY-MM-DD');
+              return formattedValue === formattedCheckOutTime;
             },
           },
     
@@ -292,6 +403,12 @@ return (
     >
       Add
     </Button> */}
+    <Button onClick={exportToExcel} type="primary" shape='round'>
+        Export excel<FileExcelOutlined />
+      </Button>
+    <br/>
+    <br/> 
+
     <Tabs defaultActiveKey="1" type="card" items={items} onChange={onChange} />
     
 
@@ -389,7 +506,7 @@ return (
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
         <td style={{display:'flex',justifyContent:'right'}}><b>Check-in Time:</b></td>
-        <td>{form.getFieldValue("check_in_time")}</td>
+        <td>{formatDateAndTime(form.getFieldValue("check_in_time"))}</td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
         <td style={{display:'flex',justifyContent:'right'}}><b>Host Contact Person:</b></td>
@@ -407,7 +524,12 @@ return (
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
         <td style={{display:'flex',justifyContent:'right'}}><b>ID Card No:</b></td>
-        <td>{form.getFieldValue("id_card_no")}</td>
+        <td>{ cards.map((cards)=>{
+          if(form.getFieldValue("id_card_no") == cards.id){
+            return cards.card_no;
+          }
+        })}
+        </td>
       </tr>
       <tr style={{ borderBottom: '1px solid #ddd' }}>
         <td style={{display:'flex',justifyContent:'right'}}><b>Signature:</b></td>
@@ -423,17 +545,29 @@ return (
   </div>
   <Card>
   <List
-      header="File:"
-      bordered
-      dataSource={form.getFieldValue("uploaded_files")}
-      renderItem={(item) => (
-        <List.Item>
+    header="File:"
+    bordered
+    dataSource={form.getFieldValue("uploaded_files")}
+    renderItem={(item) => (
+      <List.Item>
+        {item.filename.toLowerCase().endsWith('.jpg') || item.filename.toLowerCase().endsWith('.png') ? (
+          <div>
+            <a target="_blank" rel="noopener noreferrer">
+              <Image src={`${uploadUrl}${item.filename}`} alt={item.originalname} style={{ maxWidth: '100px', maxHeight: '100px' }} />
+            </a>
+            <br />
+            <a href={`${uploadUrl}${item.filename}`} target="_blank" rel="noopener noreferrer">
+              {item.originalname}
+            </a>
+          </div>
+        ) : (
           <a href={`${uploadUrl}${item.filename}`} target="_blank" rel="noopener noreferrer">
             {item.originalname}
           </a>
-        </List.Item>
-      )}
-    />
+        )}
+      </List.Item>
+    )}
+  />
     </Card>
     <Card>
     <Button size="large" onClick={handlePrint}>Print Pass<PrinterOutlined /></Button>

@@ -2,6 +2,7 @@ import {
   FolderOpenOutlined ,
   CheckCircleOutlined ,
   ClockCircleOutlined,
+  IdcardTwoTone ,
   PlusOutlined, 
   UserOutlined,
   TeamOutlined
@@ -16,12 +17,14 @@ import CountUp from 'react-countup';
 import { Tag, Avatar, Card, Col, Row, Statistic } from 'antd';
 import { fetchVisitorsAsync } from '../../store/slices/visitorSlice';
 import { fetchDepartmentsAsync } from '../../store/slices/departmentSlice';
+import { fetchCardsAsync } from '../../store/slices/cardSlice';
 
 const Dashboard = () => {
   const [greeting, setGreeting] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data } = useSelector((state) => state.auth);
+  const {cards} = useSelector((state)=>state.card);
 
   useEffect(() => {
     const updateGreeting = () => {
@@ -54,6 +57,7 @@ const Dashboard = () => {
   useEffect(()=>{
     dispatch(fetchVisitorsAsync())
     dispatch(fetchDepartmentsAsync())
+    dispatch(fetchCardsAsync())
   },[])
 
   const formatter = (num) => <CountUp end={num.toString().replace(/,/g, '')} />;
@@ -99,6 +103,24 @@ const Dashboard = () => {
             />
           </Card>
         </Col>
+      </Row>
+      <Row gutter={12}>
+        <Col span={6}>
+          <Card
+            style={{ backgroundColor: '#B2D7ED' }}
+            className="hoverable-card"
+            onClick={() => handleClick('/card-index')}
+          >
+            <Statistic
+              title="Visitor Card"
+              prefix={<IdcardTwoTone  style={{ marginRight: 8 }} />}
+              style={{ fontWeight: 'bold' }}
+              value={cards.length}
+              formatter={formatter}
+            />
+          </Card>
+        </Col>
+        
       </Row>
   </>;
 };

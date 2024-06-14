@@ -36,6 +36,9 @@ import { upload } from '@testing-library/user-event/dist/upload';
 const FormItem = Form.Item;
 const { Option } = Select;
 const VisitorAddForm = () => {
+
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
   const navigate = useNavigate();
   const changeId = useParams();
   const [form] = Form.useForm();
@@ -54,6 +57,26 @@ const VisitorAddForm = () => {
   const { visitors, visitor_loading, visitor_error } = useSelector(
     (state) => state.visitor
   );
+
+
+  const handlePreview = async file => {
+    if (!file.url && !file.preview) {
+      file.preview = await previewFile(file.originFileObj);
+    }
+    setPreviewVisible(true);
+    setPreviewImage(file.preview);
+  };
+
+  const handleCancel = () => setPreviewVisible(false);
+
+  const previewFile = file => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   useEffect(() => {
     if (changeId.changeId) {
@@ -347,6 +370,7 @@ const VisitorAddForm = () => {
   };
 
   const captureImageScan = () => {
+    try{
     const imageSrc = webcamRef.current.getScreenshot();
     console.log('Image source:', imageSrc);
     setVisible(false);
@@ -378,6 +402,11 @@ const VisitorAddForm = () => {
     console.log('Updated Files:', updatedFiles);
 
     form.setFieldsValue({ files: updatedFiles });
+    message.success("File Scanned.")
+    }
+    catch(error){
+      message.error('Error occurred while processing the image:', error);
+    }
   };
 
   const captureImage = () => {
@@ -432,8 +461,8 @@ const VisitorAddForm = () => {
       }}
     >
       <Modal
-        title="Scan Document"
-        visible={visibleScan}
+         title="Scan Document"
+        open={visibleScan}
         destroyOnClose={true}
         onCancel={closeModalScan}
         footer={[
@@ -506,6 +535,14 @@ const VisitorAddForm = () => {
             />
           )}
         </div>
+      </Modal>
+
+      <Modal
+        visible={previewVisible}
+        footer={null}
+        onCancel={handleCancel}
+      >
+        <img alt="Preview" style={{ width: '100%' }} src={previewImage} />
       </Modal>
       <Card style={{ width: '500px' }}>
         <Form
@@ -624,13 +661,15 @@ const VisitorAddForm = () => {
               multiple
               listType="picture-card"
               accept=".pdf,.jpg,.jpeg,.xlsx,.txt,.xls"
+              onPreview={handlePreview}
             >
               <Button icon={<UploadOutlined />}>Click to Upload</Button>
             </Upload>
+            
           </Form.Item>
           <Button size="middle" onClick={openCameraScan}>
             <b>
-              <Tag color="green">
+              <Tag color="red">
                 <ScanOutlined />
                 &nbsp; Scan Doc
               </Tag>
@@ -699,6 +738,10 @@ const VisitorAddForm = () => {
               {
                 pattern: /^[0-9]+$/,
                 message: 'Please enter only numbers for the mobile number!',
+              },
+              {
+                len: 10,
+                message: 'Mobile number must be exactly 10 digits!',
               },
             ]}
           >

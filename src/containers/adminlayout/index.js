@@ -56,10 +56,10 @@ const AdminLayout = () => {
         >
           {/* <Image src={base64Image} alt="Base64 Image" />  */}
           <Text style={{ marginTop: '0px', fontSize: 18, fontWeight: '500' }}>
-            {/* {userInfo?.userName} */}
+            {userInfo?.employeeName}
           </Text>
           <Text style={{ marginTop: '1px', fontSize: 13, color: '#606060' }}>
-            {/* {userInfo?.solDesc} */}
+            {userInfo?.departmentName}
           </Text>
           {/* <Text   style={{marginTop:'-1px', fontSize:12, color:"#6D6D6D"}}>Employee Id: 1923</Text> */}
           <Text style={{ fontSize: 13, color: '#606060' }}>
@@ -196,7 +196,7 @@ const AdminLayout = () => {
               <h1
                 style={{ color: '#fff', fontSize: '19px', fontWeight: '600' }}
               >
-               --
+               Visitor Tracking System
               </h1>
             </div>
             <div

@@ -135,7 +135,16 @@ return (
             </Form.Item>
           )}
         
-        <Form.Item name="card_no" label="card_no">
+        <Form.Item 
+          name="card_no" 
+          label="Card Number"
+          rules={[
+            {
+              required: true,
+              message: 'Please enter your card number!',
+            },
+          ]}
+        >
           <Input />
         </Form.Item>
         

@@ -124,6 +124,7 @@ const Login = () => {
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 type="primary"
+                loading={loading}
                 shape="round"
                 htmlType="submit"
                 style={{
